@@ -23,6 +23,17 @@
 extern "C" {
 #endif
 
+cluster_socket_fd cluster_socket_datagram(const cluster_sockaddr_storage *addr, socklen_t addr_len);
+cluster_socket_fd cluster_socket(int domain, int type);
+int cluster_bind(cluster_socket_fd fd, const cluster_sockaddr_storage *addr, 
+    cluster_socklen_t addr_len);
+ssize_t cluster_recv_from(cluster_socket_fd fd, uint8_t *buffer, 
+    size_t buffer_size, cluster_sockaddr_storage *addr, cluster_socklen_t *addr_len);
+ssize_t cluster_send_to(cluster_socket_fd fd, const uint8_t *buffer, 
+    size_t buffer_size, const cluster_sockaddr_storage *addr, cluster_socklen_t addr_len);
+void cluster_close(cluster_socket_fd fd);
+int cluster_get_sock_name(cluster_socket_fd fd, cluster_sockaddr_storage *addr, 
+    cluster_socklen_t *addr_len);
 
 #ifdef  __cplusplus
 }

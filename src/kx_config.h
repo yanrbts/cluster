@@ -17,6 +17,7 @@
 #ifndef __CLUSTER_CONFIG_H__
 #define __CLUSTER_CONFIG_H__
 
+#include <stdio.h>
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -25,6 +26,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include <kx_errors.h>
 #include <kx_gossip.h>
@@ -92,10 +95,14 @@ typedef struct cluster_member       cluster_member_t;
 typedef struct cluster_member_set   cluster_member_set_t;
 typedef enum cluster_error          cluster_error_t;
 typedef enum cluster_bool           cluster_bool_t;
+typedef int                         cluster_socket_fd;
+typedef struct vector_record        vector_record_t;
+typedef struct vector_clock         vector_clock_t;
+typedef enum vector_clock_comp_res  vector_clock_comp_res_t;
 
-#define CLUSTER_MEMBER_SIZE (sizeof(uint16_t) + 
-                            sizeof(uint32_t) + 
-                            sizeof(cluster_socklen_t) + 
+#define CLUSTER_MEMBER_SIZE (sizeof(uint16_t) +                 \
+                            sizeof(uint32_t) +                  \
+                            sizeof(cluster_socklen_t) +         \
                             sizeof(cluster_sockaddr_storage))
 
 #ifdef  __cplusplus
