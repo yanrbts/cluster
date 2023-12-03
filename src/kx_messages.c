@@ -169,4 +169,177 @@ int message_data_decode(const uint8_t *buffer, size_t buffer_size, message_data_
 
     const uint8_t *cursor = buffer;
     const uint8_t *buffer_end = buffer + buffer_size;
+
+    int decode_result = message_header_decode(cursor, buffer_size, &result->header);
+    if (decode_result < 0) return decode_result;
+    cursor += decode_result;
+
+    decode_result = vector_clock_record_decode(cursor, buffer_size, &result->header);
+    if (decode_result < 0) return decode_result;
+    cursor += decode_result;
+
+    result->data_size = uint16_decode(cursor);
+    cursor += sizeof(uint16_t);
+
+    size_t base_size = sizeof(message_header_t)
+                       + VECTOR_RECORD_SIZE
+                       + sizeof(uint16_t);
+    size_t expected_size = base_size + result->data_size;
+    if (buffer_size != expected_size)
+        return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
+    
+    uint8_t *data_cursor = result->data_size > 0 ? (uint8_t *)cursor : NULL;
+    result->data = data_cursor;
+    cursor += result->data_size;
+
+    return cursor - buffer;
+}
+
+int message_data_encode(const message_data_t *msg, uint8_t *buffer, size_t buffer_size) {
+    size_t min_size = sizeof(message_header_t) 
+                     + VECTOR_RECORD_SIZE
+                     + sizeof(uint16_t)
+                     + msg->data_size;
+    if (buffer_size < min_size)
+        return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
+
+    uint8_t *cursor = buffer;
+    const uint8_t *buffer_end = buffer + buffer_size;
+
+    int encode_result = message_header_encode(&msg->header, cursor, buffer_size);
+    if (encode_result < 0) return encode_result;
+    cursor += encode_result;
+
+    encode_result = vector_clock_record_encode(&msg->data_version, cursor, buffer_end - cursor);
+    if (encode_result < 0) return encode_result;
+    cursor += encode_result;
+
+    uint16_encode(msg->data_size, cursor);
+    cursor += sizeof(uint16_t);
+
+    memcpy(cursor, msg->data, msg->data_size);
+    cursor += msg->data_size;
+
+    return cursor - buffer;
+}
+
+int message_member_list_decode(const uint8_t *buffer, size_t buffer_size, message_member_list_t *result) {
+    RETURN_IF_INVALID_PAYLOAD(MESSAGE_MEMBER_LIST_TYPE, CLUSTER_ERR_INVALID_MESSAGE);
+
+    if (buffer_size < sizeof(message_header_t) + sizeof(uint16_t))
+        return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
+    
+    const uint8_t *cursor = buffer;
+    const uint8_t *buffer_end = buffer + buffer_size;
+
+    int decode_result = message_header_decode(cursor, buffer_size, &result->header);
+    if (decode_result < 0) return decode_result;
+    cursor += decode_result;
+
+    result->members_n = uint16_decode(cursor);
+    cursor += sizeof(uint16_t);
+
+    result->members = (cluster_member_t *)malloc(result->members_n * sizeof(cluster_member_t));
+    if (result->members == NULL)
+        return CLUSTER_ERR_ALLOCATION_FAILED;
+    
+    for (int i = 0; i < result->members; i++) {
+        decode_result = cluster_member_decode(cursor, buffer_end - cursor, &result->members[i]);
+        if (decode_result < 0) return decode_result;
+        cursor += decode_result;
+    }
+    return cursor - buffer;
+}
+
+int message_member_list_encode(const message_member_list_t *msg, uint8_t *buffer, size_t buffer_size) {
+    uint32_t expected_size = sizeof(message_header_t) + sizeof(uint16_t);
+    expected_size += msg->members_n * CLUSTER_MEMBER_SIZE;
+    if (buffer_size < expected_size)
+        return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
+
+    int encode_result = message_header_encode(&msg->header, buffer, buffer_size);
+    if (encode_result < 0) return encode_result;
+
+    uint8_t *cursor = buffer + encode_result;
+    uint16_encode(msg->members_n, cursor);
+    cursor += sizeof(uint16_t);
+
+    const uint8_t *buffer_end = buffer + buffer_size;
+    for (int i = 0; i < msg->members_n; ++i) {
+        cursor += cluster_member_encode(&msg->members[i], cursor, buffer_end - cursor);
+    }
+    return cursor - buffer;
+}
+
+void message_member_list_destroy(const message_member_list_t *msg) {
+    free(msg->members);
+}
+
+int message_ack_decode(const uint8_t *buffer, size_t buffer_size, message_ack_t *result) {
+    RETURN_IF_INVALID_PAYLOAD(MESSAGE_ACK_TYPE, CLUSTER_ERR_INVALID_MESSAGE);
+    if (buffer_size < sizeof(message_header_t) + sizeof(uint32_t))
+        return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
+    
+    const uint8_t *cursor = buffer;
+    if (message_header_decode(cursor, buffer_size, &result->header) < 0)
+        return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
+    cursor += sizeof(message_header_t);
+
+    result->ack_sequence_num = uint32_decode(cursor);
+    cursor += sizeof(uint32_t);
+
+    return cursor - buffer;
+}
+
+int message_ack_encode(const message_ack_t *msg, uint8_t *buffer, size_t buffer_size) {
+    if (buffer_size < sizeof(message_header_t) + sizeof(uint32_t))
+        return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
+
+    int encode_result = message_header_encode(&msg->header, buffer, buffer_size);
+    if (encode_result < 0) return encode_result;
+
+    uint8_t *cursor = buffer + encode_result;
+    uint32_encode(msg->ack_sequence_num, cursor);
+    cursor += sizeof(uint32_t);
+
+    return cursor - buffer;
+}
+
+int message_status_decode(const uint8_t *buffer, size_t buffer_size, message_status_t *result) {
+    RETURN_IF_INVALID_PAYLOAD(MESSAGE_STATUS_TYPE, CLUSTER_ERR_INVALID_MESSAGE);
+    if (buffer_size < sizeof(message_header_t) + sizeof(uint16_t))
+        return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
+
+    const uint8_t *cursor = buffer;
+    const uint8_t *buffer_end = buffer + buffer_size;
+
+    if (message_header_decode(cursor, buffer_size, &result->header) < 0) 
+        return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
+    cursor += sizeof(message_header_t);
+
+    int decode_result = vector_clock_decode(cursor, buffer_end - cursor, &result->data_version);
+    if (decode_result < 0) return decode_result;
+    cursor += decode_result;
+
+    return cursor - buffer;
+}
+
+int message_status_encode(const message_status_t *msg, uint8_t *buffer, size_t buffer_size) {
+    uint32_t expected_size = sizeof(message_header_t) 
+                            + sizeof(uint16_t) 
+                            + msg->data_version.size * VECTOR_RECORD_SIZE;
+    if (buffer_size < expected_size) 
+        return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
+
+    int encode_result = message_header_encode(&msg->header, buffer, buffer_size);
+    if (encode_result < 0) return encode_result;
+
+    uint8_t *cursor = buffer + encode_result;
+    uint8_t *buffer_end = buffer + buffer_size;
+
+    encode_result = vector_clock_encode(&msg->data_version, cursor, buffer_end - cursor);
+    if (encode_result < 0) return encode_result;
+    cursor += encode_result;
+
+    return cursor - buffer;
 }
