@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stddef.h>
+#include <errno.h>
 
 #include <kx_errors.h>
 #include <kx_gossip.h>

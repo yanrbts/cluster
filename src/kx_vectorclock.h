@@ -71,7 +71,7 @@ int vector_clock_copy(vector_clock_t *dst, const vector_clock_t *src);
  */
 vector_clock_comp_res_t vector_clock_compare(vector_clock_t *first,
                                              const vector_clock_t *second,
-                                             pt_bool_t merge);
+                                             cluster_bool_t merge);
 
 /**
  * Compares the given vector clock with a single record. If the "merge"
@@ -88,7 +88,7 @@ vector_clock_comp_res_t vector_clock_compare(vector_clock_t *first,
  */
 vector_clock_comp_res_t vector_clock_compare_with_record(vector_clock_t *clock,
                                                          const vector_record_t *record,
-                                                         pt_bool_t merge);
+                                                         cluster_bool_t merge);
 
 int vector_clock_record_decode(const uint8_t *buffer, size_t buffer_size, vector_record_t *result);
 int vector_clock_record_encode(const vector_record_t *record, uint8_t *buffer, size_t buffer_size);
