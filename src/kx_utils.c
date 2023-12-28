@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <kx_config.h>
+#include "kx_config.h"
 
 uint64_t cluster_time() {
     struct timeval tv;

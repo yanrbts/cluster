@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <kx_config.h>
-#include <kx_gossip.h>
+#include "kx_config.h"
+// #include <kx_gossip.h>
 
 #define RETURN_IF_NOT_CONNECTED(state)  if ((state) != STATE_CONNECTED) return CLUSTER_ERR_BAD_STATE;
 #define INPUT_BUFFER_SIZE               MESSAGE_MAX_SIZE
@@ -382,7 +382,7 @@ static int gossip_enqueue_data(cluster_gossip_t *self,
                                uint16_t data_size) {
     // Update the local data version.
     uint32_t clock_counter = ++self->data_counter;
-    vector_clock_t *record = vector_clock_set(&self->data_version, &self->self_address,
+    vector_record_t *record = (vector_record_t*)vector_clock_set(&self->data_version, &self->self_address,
                                               clock_counter);
     message_data_t data_msg;
     message_header_init(&data_msg.header, MESSAGE_DATA_TYPE, 0);
@@ -556,7 +556,7 @@ static int gossip_handle_data(cluster_gossip_t *self, const message_envelope_in_
 
     // Verify whether we saw the arrived message before.
     vector_clock_comp_res_t res = vector_clock_compare_with_record(&self->data_version,
-                                                                   &msg.data_version, PT_TRUE);
+                                                                   &msg.data_version, CLUSTER_TRUE);
 
     if (res == VC_BEFORE) {
         // Add the data to our internal log.
@@ -601,7 +601,7 @@ static int gossip_handle_status(cluster_gossip_t *self, const message_envelope_i
 
     int result = CLUSTER_ERR_NONE;
 
-    vector_clock_comp_res_t comp_res = vector_clock_compare(&self->data_version, &msg.data_version, PT_FALSE);
+    vector_clock_comp_res_t comp_res = vector_clock_compare(&self->data_version, &msg.data_version, CLUSTER_FALSE);
     switch (comp_res) {
         case VC_AFTER:
             // The remote node is missing some of the data messages.

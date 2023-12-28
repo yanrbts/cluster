@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <kx_config.h>
+#include "kx_config.h"
 
 static const uint32_t MEMBERS_INITIAL_CAPACITY = 32;
 static const uint8_t MEMBERS_EXTENSION_FACTOR = 2;
@@ -255,7 +255,7 @@ size_t cluster_member_set_random_members(cluster_member_set_t *members,
     /* Randomly replace reservoir's elements with items from the member's set. */
     if (actual_reservoir_size < members->size) {
         for (; member_idx < members->size; ++member_idx) {
-            size_t random_idx = pt_random() % (member_idx + 1);
+            size_t random_idx = cluster_random() % (member_idx + 1);
             if (random_idx < actual_reservoir_size) {
                 reservoir[random_idx] = members->set[member_idx];
             }

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <kx_config.h>
+#include "kx_config.h"
 
 #define RETURN_IF_INVALID_PAYLOAD(t, r) if (!message_is_payload_valid(buffer, buffer_size, (t))) return r;
 
@@ -77,6 +77,8 @@ int message_hello_decode(const uint8_t *buffer, size_t buffer_size, message_hell
     size_t min_size = sizeof(message_header_t) 
                      + sizeof(cluster_member_t)
                      - sizeof(cluster_sockaddr_storage *);
+    if (buffer_size < min_size) return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
+
     message_header_decode(buffer, buffer_size, &result->header);
     result->this_member = (cluster_member_t *)malloc(sizeof(cluster_member_t));
     if (result->this_member == NULL)
@@ -174,7 +176,7 @@ int message_data_decode(const uint8_t *buffer, size_t buffer_size, message_data_
     if (decode_result < 0) return decode_result;
     cursor += decode_result;
 
-    decode_result = vector_clock_record_decode(cursor, buffer_size, &result->header);
+    decode_result = vector_clock_record_decode(cursor, buffer_end - cursor, &result->data_version);
     if (decode_result < 0) return decode_result;
     cursor += decode_result;
 
@@ -243,7 +245,7 @@ int message_member_list_decode(const uint8_t *buffer, size_t buffer_size, messag
     if (result->members == NULL)
         return CLUSTER_ERR_ALLOCATION_FAILED;
     
-    for (int i = 0; i < result->members; i++) {
+    for (int i = 0; i < result->members_n; i++) {
         decode_result = cluster_member_decode(cursor, buffer_end - cursor, &result->members[i]);
         if (decode_result < 0) return decode_result;
         cursor += decode_result;

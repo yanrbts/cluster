@@ -31,12 +31,35 @@
 #include <stddef.h>
 #include <errno.h>
 
-#include <kx_errors.h>
-#include <kx_gossip.h>
-#include <kx_member.h>
-#include <kx_utils.h>
-#include <kx_messages.h>
-#include <kx_vectorclock.h>
+typedef socklen_t                   cluster_socklen_t;
+typedef struct sockaddr             cluster_sockaddr;
+typedef struct sockaddr_in          cluster_sockaddr_in;
+typedef struct sockaddr_in6         cluster_sockaddr_in6;
+typedef struct sockaddr_storage     cluster_sockaddr_storage;
+
+typedef struct cluster_member       cluster_member_t;
+typedef struct cluster_member_set   cluster_member_set_t;
+typedef enum cluster_error          cluster_error_t;
+typedef enum cluster_bool           cluster_bool_t;
+typedef int                         cluster_socket_fd;
+typedef struct vector_record        vector_record_t;
+typedef struct vector_clock         vector_clock_t;
+typedef enum vector_clock_comp_res  vector_clock_comp_res_t;
+typedef struct message_header       message_header_t;
+typedef struct message_hello        message_hello_t;
+typedef struct message_welcome      message_welcome_t;
+typedef struct message_member_list  message_member_list_t;
+typedef struct message_ack          message_ack_t;
+typedef struct message_data         message_data_t;
+typedef struct message_status       message_status_t;
+
+#include "kx_errors.h"
+#include "kx_network.h"
+#include "kx_gossip.h"
+#include "kx_member.h"
+#include "kx_utils.h"
+#include "kx_vectorclock.h"
+#include "kx_messages.h"
 
 #ifdef  __cplusplus
 extern "C" {
@@ -88,27 +111,7 @@ extern "C" {
 #define CLUSTER_HTONS(i) htons((i))
 #define CLUSTER_HTONL(i) htonl((i))
 
-typedef socklen_t                   cluster_socklen_t;
-typedef struct sockaddr             cluster_sockaddr;
-typedef struct sockaddr_in          cluster_sockaddr_in;
-typedef struct sockaddr_in6         cluster_sockaddr_in6;
-typedef struct sockaddr_storage     cluster_sockaddr_storage;
 
-typedef struct cluster_member       cluster_member_t;
-typedef struct cluster_member_set   cluster_member_set_t;
-typedef enum cluster_error          cluster_error_t;
-typedef enum cluster_bool           cluster_bool_t;
-typedef int                         cluster_socket_fd;
-typedef struct vector_record        vector_record_t;
-typedef struct vector_clock         vector_clock_t;
-typedef enum vector_clock_comp_res  vector_clock_comp_res_t;
-typedef struct message_header       message_header_t;
-typedef struct message_hello        message_hello_t;
-typedef struct message_welcome      message_welcome_t;
-typedef struct message_member_list  message_member_list_t;
-typedef struct message_ack          message_ack_t;
-typedef struct message_data         message_data_t;
-typedef struct message_status       message_status_t;
 
 #define CLUSTER_MEMBER_SIZE (sizeof(uint16_t) +                 \
                             sizeof(uint32_t) +                  \

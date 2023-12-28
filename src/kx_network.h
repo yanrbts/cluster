@@ -17,7 +17,7 @@
 #ifndef __CLUSTER_NETWORK_H__
 #define __CLUSTER_NETWORK_H__
 
-#include <kx_config.h>
+#include "kx_config.h"
 
 #ifdef  __cplusplus
 extern "C" {

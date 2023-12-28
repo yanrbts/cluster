@@ -17,6 +17,8 @@
 #ifndef __CLUSTER_GOSSIP_H__
 #define __CLUSTER_GOSSIP_H__
 
+#include "kx_config.h"
+
 #ifdef  __cplusplus
 extern "C" {
 #endif

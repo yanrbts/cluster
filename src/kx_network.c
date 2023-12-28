@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <kx_config.h>
+#include "kx_config.h"
 
 cluster_socket_fd cluster_socket_datagram(const cluster_sockaddr_storage *addr, 
     socklen_t addr_len)

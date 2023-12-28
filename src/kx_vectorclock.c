@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <kx_config.h>
+#include "kx_config.h"
 
 static void vector_clock_create_member_id(const cluster_member_t *member, member_id_t *result) {
     /* copy 4 bytes of address and 2 bytes of port */
@@ -99,7 +99,7 @@ void vector_clock_to_string(const vector_clock_t *clock, char *result) {
     int str_size = 0;
     for (int i = 0; i < clock->size; i++) {
         str_size = sprintf(cursor, "(%llx:%u)  ",
-                           clock->records[i].member_id,
+                           (unsigned long long)clock->records[i].member_id,
                            clock->records[i].sequence_number);
         cursor += str_size;
     }
