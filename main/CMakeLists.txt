@@ -13,12 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-cmake_minimum_required(VERSION 3.0)
-project(cluster)
-enable_language(C)
-enable_testing()
-
-add_subdirectory(src)
-add_subdirectory(main)
-# add_subdirectory(demos)
-
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -DLOG_USE_COLOR -std=gnu99 -O2")
+include_directories(../src)
+include_directories(./)
+add_executable(gfs kx_gfs.c  $<TARGET_OBJECTS:cluster_obj>)
+add_executable(kxcluster kx_cluster.c $<TARGET_OBJECTS:cluster_obj>)

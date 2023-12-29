@@ -28,8 +28,11 @@ int message_type_decode(const uint8_t *buffer, size_t buffer_size) {
 }
 
 static int message_is_payload_valid(const uint8_t *buffer, size_t buffer_size, uint8_t type) {
-    return message_type_decode(buffer, buffer_size) == type &&
-            memcmp(buffer, PROTOCOL_ID, PROTOCOL_ID_LENGTH) == 0;
+    int n = message_type_decode(buffer, buffer_size) == type;
+    int m = memcmp(buffer, PROTOCOL_ID, PROTOCOL_ID_LENGTH) == 0;
+    log_info("payload valid n : %d", n);
+    log_info("payload valid m : %s %d", (char*)buffer, m);
+    return n && m;
 }
 
 void message_header_init(message_header_t *header, uint8_t message_type, uint32_t sequence_number) {

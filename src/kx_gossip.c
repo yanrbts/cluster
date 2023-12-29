@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 #include "kx_config.h"
-// #include <kx_gossip.h>
+#include "kx_gossip.h"
 
 #define RETURN_IF_NOT_CONNECTED(state)  if ((state) != STATE_CONNECTED) return CLUSTER_ERR_BAD_STATE;
 #define INPUT_BUFFER_SIZE               MESSAGE_MAX_SIZE
@@ -478,6 +478,7 @@ static int gossip_handle_hello(cluster_gossip_t *self, const message_envelope_in
     message_hello_t msg;
     int decode_result = message_hello_decode(envelope_in->buffer, envelope_in->buffer_size, &msg);
     if (decode_result < 0) {
+        log_error("handle hello error : %d", decode_result);
         return decode_result;
     }
 

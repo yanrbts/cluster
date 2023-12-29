@@ -17,13 +17,13 @@
 #ifndef __CLUSTER_GOSSIP_H__
 #define __CLUSTER_GOSSIP_H__
 
-#include "kx_config.h"
-
 #ifdef  __cplusplus
 extern "C" {
 #endif
 
+typedef int cluster_socket_fd;
 typedef struct cluster_gossip cluster_gossip_t;
+
 typedef enum cluster_gossip_state {
     STATE_INITIALIZED,
     STATE_JOINING,
@@ -68,6 +68,85 @@ typedef struct cluster_addr {
  */
 cluster_gossip_t *cluster_gossip_create(const cluster_addr_t *self_addr,
                                           data_receiver_t data_receiver, void *data_receiver_context);
+
+/**
+ * Destroys a gossip descriptor instance.
+ *
+ * @param self a gossip descriptor instance.
+ * @return zero on success or negative value if the operation failed.
+ */
+int cluster_gossip_destroy(cluster_gossip_t *self);
+
+/**
+ * Join the gossip cluster using the list of seed nodes.
+ *
+ * @param self a gossip descriptor instance.
+ * @param seed_nodes a list of seed node addresses.
+ * @param seed_nodes_len a size of the list.
+ * @return zero on success or negative value if the operation failed.
+ */
+int cluster_gossip_join(cluster_gossip_t *self,
+                         const cluster_addr_t *seed_nodes, uint16_t seed_nodes_len);
+
+/**
+ * Suggests Pittacus to read a next message from the socket.
+ * Only one message will be read.
+ *
+ * @param self a gossip descriptor instance.
+ * @return zero on success or negative value if the operation failed.
+ */
+int cluster_gossip_process_receive(cluster_gossip_t *self);
+
+/**
+ * Suggests Pittacus to write existing outbound messages to the socket.
+ * All available messages will be written to the socket.
+ *
+ * @param self a gossip descriptor instance.
+ * @return a number of sent messages or negative value if the operation failed.
+ */
+int cluster_gossip_process_send(cluster_gossip_t *self);
+
+/**
+ * Spreads the given data buffer within a gossip cluster.
+ * Note: no network transmission will be performed at this
+ * point. The message is added to a queue of outbound messages
+ * and will be sent to a cluster during the next cluster_gossip_process_send()
+ * invocation.
+ *
+ * @param self a gossip descriptor instance.
+ * @param data a payload.
+ * @param data_size a payload size.
+ * @return zero on success or negative value if the operation failed.
+ */
+int cluster_gossip_send_data(cluster_gossip_t *self, const uint8_t *data, uint32_t data_size);
+
+/**
+ * Processes the Gossip tick event.
+ * Note: no actions will be performed if the time for the next tick
+ * has not yet come. However the return value will be recalculated according
+ * to the time that has passed since the last tick.
+ *
+ * @param self a gossip descriptor instance.
+ * @return a time interval in milliseconds when the next gossip
+ *         tick should happen, or negative value if the error occurred.
+ */
+int cluster_gossip_tick(cluster_gossip_t *self);
+
+/**
+ * Retrieves a current state of this node.
+ *
+ * @param self a gossip descriptor instance.
+ * @return this node's state.
+ */
+cluster_gossip_state_t cluster_gossip_state(cluster_gossip_t *self);
+
+/**
+ * Retrieves gossip socket descriptor.
+ *
+ * @param self  a gossip descriptor instance.
+ * @return a socket descriptor.
+ */
+cluster_socket_fd cluster_gossip_socket_fd(cluster_gossip_t *self);
 
 #ifdef  __cplusplus
 }

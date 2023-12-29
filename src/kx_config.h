@@ -17,6 +17,10 @@
 #ifndef __CLUSTER_CONFIG_H__
 #define __CLUSTER_CONFIG_H__
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 #include <stdio.h>
 #include <stdint.h>
 #include <arpa/inet.h>
@@ -41,7 +45,6 @@ typedef struct cluster_member       cluster_member_t;
 typedef struct cluster_member_set   cluster_member_set_t;
 typedef enum cluster_error          cluster_error_t;
 typedef enum cluster_bool           cluster_bool_t;
-typedef int                         cluster_socket_fd;
 typedef struct vector_record        vector_record_t;
 typedef struct vector_clock         vector_clock_t;
 typedef enum vector_clock_comp_res  vector_clock_comp_res_t;
@@ -53,17 +56,14 @@ typedef struct message_ack          message_ack_t;
 typedef struct message_data         message_data_t;
 typedef struct message_status       message_status_t;
 
+#include "kx_log.h"
+#include "kx_gossip.h"
 #include "kx_errors.h"
 #include "kx_network.h"
-#include "kx_gossip.h"
 #include "kx_member.h"
 #include "kx_utils.h"
 #include "kx_vectorclock.h"
 #include "kx_messages.h"
-
-#ifdef  __cplusplus
-extern "C" {
-#endif
 
 #ifndef PROTOCOL_VERSION
 #define PROTOCOL_VERSION 0x01
