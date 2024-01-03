@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in self_in;
 
     self_in.sin_family = AF_INET;
-    self_in.sin_port = htons(65000);
+    self_in.sin_port = htons(6500);
     inet_aton("127.0.0.1", &self_in.sin_addr);
     // Filling in the address of the current node.
     cluster_addr_t self_addr = {

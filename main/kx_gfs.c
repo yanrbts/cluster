@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
     // Connect to the active seed node.
     struct sockaddr_in seed_node_in;
     seed_node_in.sin_family = AF_INET;
-    seed_node_in.sin_port = htons(65000);
+    seed_node_in.sin_port = htons(6500);
     inet_aton("127.0.0.1", &seed_node_in.sin_addr);
 
     cluster_addr_t seed_node_addr = {

@@ -28,11 +28,8 @@ int message_type_decode(const uint8_t *buffer, size_t buffer_size) {
 }
 
 static int message_is_payload_valid(const uint8_t *buffer, size_t buffer_size, uint8_t type) {
-    int n = message_type_decode(buffer, buffer_size) == type;
-    int m = memcmp(buffer, PROTOCOL_ID, PROTOCOL_ID_LENGTH) == 0;
-    log_info("payload valid n : %d", n);
-    log_info("payload valid m : %s %d", (char*)buffer, m);
-    return n && m;
+    return message_type_decode(buffer, buffer_size) == type &&
+            memcmp(buffer, PROTOCOL_ID, PROTOCOL_ID_LENGTH) == 0;
 }
 
 void message_header_init(message_header_t *header, uint8_t message_type, uint32_t sequence_number) {
@@ -45,7 +42,7 @@ void message_header_init(message_header_t *header, uint8_t message_type, uint32_
 static int message_header_encode(const message_header_t *msg, uint8_t *buffer, size_t buffer_size) {
     if (buffer_size < sizeof(struct message_header))
         return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
-
+    memcpy(buffer, msg->protocol_id, PROTOCOL_ID_LENGTH);
     uint8_t *cursor = buffer + PROTOCOL_ID_LENGTH;
     *cursor = msg->message_type;
     cursor += sizeof(uint8_t);
