@@ -17,15 +17,15 @@
 #include "kx_config.h"
 
 static void vector_clock_create_member_id(const cluster_member_t *member, member_id_t *result) {
-    /* copy 4 bytes of address and 2 bytes of port */
+    // copy 4 bytes of address and 2 bytes of port
     cluster_sockaddr_storage *addr = member->address;
-    uint8_t *result_buf = (uint8_t *)result;
+    uint8_t *result_buf = (uint8_t *) result;
     if (addr->ss_family == AF_INET) {
-        cluster_sockaddr_in *addr_in = (cluster_sockaddr_in *)addr;
+        cluster_sockaddr_in *addr_in = (cluster_sockaddr_in *) addr;
         memcpy(result_buf, &addr_in->sin_addr, 4);
         memcpy(result_buf + 4, &addr_in->sin_port, 2);
     } else {
-        cluster_sockaddr_in6 *addr_in6 = (cluster_sockaddr_in6 *)addr;
+        cluster_sockaddr_in6 *addr_in6 = (cluster_sockaddr_in6 *) addr;
         memcpy(result_buf, &addr_in6->sin6_addr, 4);
         memcpy(result_buf + 4, &addr_in6->sin6_port, 2);
     }
@@ -35,7 +35,7 @@ static void vector_clock_create_member_id(const cluster_member_t *member, member
 }
 
 static int vector_clock_find_by_member_id(const vector_clock_t *clock, const member_id_t *member_id) {
-    for (int i = 0; i < clock->size; i++) {
+    for (int i = 0; i < clock->size; ++i) {
         if (clock->records[i].member_id == *member_id) return i;
     }
     return CLUSTER_ERR_NOT_FOUND;
@@ -50,18 +50,14 @@ vector_record_t *vector_clock_find_record(vector_clock_t *clock, const cluster_m
 }
 
 int vector_clock_init(vector_clock_t *clock) {
-    if (clock == NULL)
-        return CLUSTER_ERR_INIT_FAILED;
-
+    if (clock == NULL) return CLUSTER_ERR_INIT_FAILED;
     memset(clock, 0, sizeof(vector_clock_t));
-
     return CLUSTER_ERR_NONE;
 }
 
 static vector_record_t *vector_clock_set_by_id(vector_clock_t *clock,
                                                const member_id_t *member_id,
-                                               uint32_t seq_num)
-{
+                                               uint32_t seq_num) {
     int idx = vector_clock_find_by_member_id(clock, member_id);
     if (idx < 0) {
         // insert or override the latest record with the new record.
@@ -69,7 +65,7 @@ static vector_record_t *vector_clock_set_by_id(vector_clock_t *clock,
         clock->records[new_idx].member_id = *member_id;
         clock->records[new_idx].sequence_number = seq_num;
 
-        if (clock->size < MAX_VECTOR_SIZE) clock->size++;
+        if (clock->size < MAX_VECTOR_SIZE) ++clock->size;
         if (++clock->current_idx >= MAX_VECTOR_SIZE) clock->current_idx = 0;
         return &clock->records[new_idx];
     } else {
@@ -81,14 +77,13 @@ static vector_record_t *vector_clock_set_by_id(vector_clock_t *clock,
 vector_record_t *vector_clock_increment(vector_clock_t *clock, const cluster_member_t *member) {
     vector_record_t *record = vector_clock_find_record(clock, member);
     if (record == NULL) return NULL;
-    record->sequence_number++;
+    ++record->sequence_number;
     return record;
 }
 
 vector_record_t *vector_clock_set(vector_clock_t *clock,
                                   const cluster_member_t *member,
-                                  uint32_t seq_num)
-{
+                                  uint32_t seq_num) {
     member_id_t member_id;
     vector_clock_create_member_id(member, &member_id);
     return vector_clock_set_by_id(clock, &member_id, seq_num);
@@ -97,9 +92,9 @@ vector_record_t *vector_clock_set(vector_clock_t *clock,
 void vector_clock_to_string(const vector_clock_t *clock, char *result) {
     char *cursor = result;
     int str_size = 0;
-    for (int i = 0; i < clock->size; i++) {
+    for (int i = 0; i < clock->size; ++i) {
         str_size = sprintf(cursor, "(%llx:%u)  ",
-                           (unsigned long long)clock->records[i].member_id,
+                           clock->records[i].member_id,
                            clock->records[i].sequence_number);
         cursor += str_size;
     }
@@ -114,7 +109,7 @@ int vector_clock_record_copy(vector_record_t *dst, const vector_record_t *src) {
 int vector_clock_copy(vector_clock_t *dst, const vector_clock_t *src) {
     dst->size = src->size;
     dst->current_idx = src->current_idx;
-    for (int i = 0; i < src->size; i++) {
+    for (int i = 0; i < src->size; ++i) {
         vector_clock_record_copy(&dst->records[i], &src->records[i]);
     }
     return CLUSTER_ERR_NONE;
@@ -127,8 +122,7 @@ static vector_clock_comp_res_t vector_clock_resolve_comp_result(vector_clock_com
 
 vector_clock_comp_res_t vector_clock_compare_with_record(vector_clock_t *clock,
                                                          const vector_record_t *record,
-                                                         cluster_bool_t merge)
-{
+                                                         cluster_bool_t merge) {
     vector_clock_comp_res_t result = VC_EQUAL;
     int idx = vector_clock_find_by_member_id(clock, &record->member_id);
     if (idx < 0) {
@@ -141,7 +135,7 @@ vector_clock_comp_res_t vector_clock_compare_with_record(vector_clock_t *clock,
         uint32_t second_seq_num = record->sequence_number;
         if (first_seq_num > second_seq_num) {
             result = VC_AFTER;
-        } else {
+        } else if (first_seq_num < second_seq_num) {
             result = VC_BEFORE;
             if (merge) {
                 clock->records[idx].sequence_number = second_seq_num;
@@ -155,9 +149,10 @@ vector_clock_comp_res_t vector_clock_compare(vector_clock_t *first,
                                              const vector_clock_t *second,
                                              cluster_bool_t merge) {
     vector_clock_comp_res_t result = VC_EQUAL;
+
     uint32_t second_visited_idxs = 0;
 
-    for (int i = 0; i < first->size; i++) {
+    for (int i = 0; i < first->size; ++i) {
         int second_idx = vector_clock_find_by_member_id(second, &first->records[i].member_id);
         if (second_idx < 0) {
             result = vector_clock_resolve_comp_result(result, VC_AFTER);
@@ -167,7 +162,7 @@ vector_clock_comp_res_t vector_clock_compare(vector_clock_t *first,
             uint32_t second_seq_num = second->records[second_idx].sequence_number;
             if (first_seq_num > second_seq_num) {
                 result = vector_clock_resolve_comp_result(result, VC_AFTER);
-            } else {
+            } else if (second_seq_num > first_seq_num) {
                 result = vector_clock_resolve_comp_result(result, VC_BEFORE);
                 if (merge) {
                     first->records[i].sequence_number = second_seq_num;
@@ -184,7 +179,7 @@ vector_clock_comp_res_t vector_clock_compare(vector_clock_t *first,
         result = vector_clock_resolve_comp_result(result, VC_BEFORE);
 
         if (merge) {
-            for (int i = 0; missing_idxs != 0; i++) {
+            for (int i = 0; missing_idxs != 0; ++i) {
                 if ((missing_idxs & 0x01) != 0) {
                     vector_clock_set_by_id(first, &second->records[i].member_id,
                                            second->records[i].sequence_number);
@@ -228,24 +223,23 @@ int vector_clock_decode(const uint8_t *buffer, size_t buffer_size, vector_clock_
 
     uint16_t size = uint16_decode(buffer);
     cursor += sizeof(uint16_t);
-    if (buffer_end - cursor < size * VECTOR_RECORD_SIZE)
-        return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
-    
+    if (buffer_end - cursor < size * VECTOR_RECORD_SIZE) return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
+
     result->size = size;
     result->current_idx = 0;
 
     int decode_result = 0;
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < size; ++i) {
         decode_result = vector_clock_record_decode(cursor, buffer_end - cursor, &result->records[i]);
         if (decode_result < 0) return decode_result;
         cursor += VECTOR_RECORD_SIZE;
     }
+
     return cursor - buffer;
 }
 
 int vector_clock_encode(const vector_clock_t *clock, uint8_t *buffer, size_t buffer_size) {
-    if (buffer_size < sizeof(uint16_t) + clock->size * VECTOR_RECORD_SIZE)
-        return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
+    if (buffer_size < sizeof(uint16_t) + clock->size * VECTOR_RECORD_SIZE) return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
 
     uint8_t *cursor = buffer;
     uint8_t *buffer_end = buffer + buffer_size;

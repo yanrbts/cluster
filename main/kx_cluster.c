@@ -23,11 +23,11 @@
 #include "kx_gossip.h"
 #include "kx_log.h"
 
-const char DATA_MESSAGE[] = "Hello World";
+const char DATA_MESSAGE[] = "Hi there";
 
 void data_receiver(void *context, cluster_gossip_t *gossip, const uint8_t *data, size_t data_size) {
     // This function is invoked every time when a new data arrives.
-    log_info("Data arrived: %s\n", data);
+    printf("Data arrived: %s\n", data);
 }
 
 int main(int argc, char *argv[]) {

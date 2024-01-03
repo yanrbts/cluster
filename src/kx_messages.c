@@ -245,7 +245,7 @@ int message_member_list_decode(const uint8_t *buffer, size_t buffer_size, messag
     if (result->members == NULL)
         return CLUSTER_ERR_ALLOCATION_FAILED;
     
-    for (int i = 0; i < result->members_n; i++) {
+    for (int i = 0; i < result->members_n; ++i) {
         decode_result = cluster_member_decode(cursor, buffer_end - cursor, &result->members[i]);
         if (decode_result < 0) return decode_result;
         cursor += decode_result;

@@ -21,8 +21,6 @@ file(GLOB SOURCE_FILES "*.c")
 add_library(cluster_obj OBJECT ${SOURCE_FILES})
 add_library(cluster SHARED $<TARGET_OBJECTS:cluster_obj>)
 add_library(cluster_static STATIC $<TARGET_OBJECTS:cluster_obj>)
-message("Current source directory: ${CMAKE_CURRENT_SOURCE_DIR}")
-message("Full path to kx_config.h: ${CMAKE_CURRENT_SOURCE_DIR}/kx_config.h")
 target_include_directories(cluster PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(INSTALL_INCLUDE_FILES kx_gossip.h kx_network.h kx_config.h kx_errors.h)

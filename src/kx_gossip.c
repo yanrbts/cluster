@@ -87,7 +87,7 @@ static int gossip_data_log_create_message(const data_log_record_t *record, messa
 static int gossip_data_log(data_log_t *log, const message_data_t *msg) {
     data_log_record_t *record = NULL;
 
-    for (int i = 0; i < log->size; i++) {
+    for (int i = 0; i < log->size; ++i) {
         // Save only the latest data message from each originator.
         if (log->messages[i].version.member_id == msg->data_version.member_id) {
             record = &log->messages[i];
@@ -102,7 +102,7 @@ static int gossip_data_log(data_log_t *log, const message_data_t *msg) {
         record = &log->messages[new_idx];
         vector_clock_record_copy(&record->version, &msg->data_version);
 
-        if (log->size < DATA_LOG_SIZE) log->size++;
+        if (log->size < DATA_LOG_SIZE) ++log->size;
         if (++log->current_idx >= DATA_LOG_SIZE) log->current_idx = 0;
     }
     record->data_size = msg->data_size;
