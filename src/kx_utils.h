@@ -26,6 +26,12 @@ enum cluster_bool {
     CLUSTER_TRUE = 1
 };
 
+/**
+ * This function passes the function gettimeofday 
+ * to the current time in milliseconds.
+ * 
+ * @return Returns the number of milliseconds
+ */
 uint64_t cluster_time();
 uint32_t cluster_random();
 uint16_t uint16_decode(const uint8_t *buffer);
