@@ -26,7 +26,6 @@ extern "C" {
 struct cluster_member {
     uint16_t version;
     uint32_t uid;
-    uint64_t ts;  /* No response received after timeout, delete this user */
     cluster_socklen_t address_len;
     cluster_sockaddr_storage *address;
 };
@@ -56,12 +55,6 @@ int cluster_member_set_remove_by_addr(cluster_member_set_t *members,
 size_t cluster_member_set_random_members(cluster_member_set_t *members,
                                          cluster_member_t **reservoir, size_t reservoir_size);
 void cluster_member_set_destroy(cluster_member_set_t *members);
-
-/**
- * @param members the Online member collection
- * @return Successful: Return 1, otherwise return 0.
- */
-int cluster_member_set_timeout_remove(cluster_member_set_t *members);
 
 #ifdef  __cplusplus
 }

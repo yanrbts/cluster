@@ -139,7 +139,6 @@ int cluster_member_set_put(cluster_member_set_t *members, cluster_member_t *new_
             if (new_member == NULL) return CLUSTER_ERR_ALLOCATION_FAILED;
 
             cluster_member_copy(new_member, current);
-            new_member->ts = cluster_time();
             members->set[members->size] = new_member;
             ++members->size;
         }
@@ -229,20 +228,4 @@ size_t cluster_member_set_random_members(cluster_member_set_t *members,
     }
 
     return actual_reservoir_size;
-}
-
-int cluster_member_set_timeout_remove(cluster_member_set_t *members) {
-    uint64_t ts = cluster_time();
-    cluster_member_t *member;
-
-    for (int i = 0; i < members->size; ++i) {
-        member = members->set[i];
-        if (ts - member->ts > TIMEOUTMILLISECONDS) {
-            log_info("delete member %u", member->uid);
-            cluster_member_set_item_destroy(member);
-            cluster_member_set_shift(members, i);
-            return CLUSTER_TRUE;
-        }
-    }
-    return CLUSTER_FALSE;
 }

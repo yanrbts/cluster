@@ -106,9 +106,6 @@ int main(int argc, char *argv[]) {
             cluster_gossip_destroy(gossip);
             return -1;
         }
-        /* Remove members that have timed out without a response. */
-        log_info("remove timeout members");
-        cluster_gossip_remove_timeout_member(gossip);
     }
     cluster_gossip_destroy(gossip);
 
