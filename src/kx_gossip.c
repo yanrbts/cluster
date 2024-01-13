@@ -849,5 +849,4 @@ cluster_socket_fd cluster_gossip_socket_fd(cluster_gossip_t *self) {
 }
 
 void cluster_gossip_remove_timeout_member(cluster_gossip_t *self) {
-    cluster_member_set_timeout_remove(&self->members);
 }
