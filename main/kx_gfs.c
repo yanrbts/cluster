@@ -28,6 +28,28 @@
 #define KX_PROMPT      "gfs>"
 char                   *kx_prompt = NULL;
 
+struct kx_option {
+    struct kx_option *next;
+    char *key;
+    char *opt_string;
+    char *value;
+};
+
+struct options {
+    struct kx_option *kx_options;
+};
+
+struct context {
+    struct options *options;
+    int argc;
+    char **argv;
+};
+
+struct cmd {
+    char *name;
+    int (*execute)(struct context *ctx);
+};
+
 typedef struct clusternode {
     char nodename[32];          /* node name */
     cluster_addr_t self;        /* node self addr */
@@ -38,7 +60,66 @@ typedef struct clusternode {
 } clusternode;
 
 clusternode gcsnode;
+struct context *gctx;
 const char DATA_MESSAGE[] = "Hello World";
+
+int do_ls(struct context *ctx) {
+    return 0;
+}
+
+static struct cmd const cmds[] =
+{
+    {.name = "gfls", .execute = do_ls}
+};
+#define NUM_CMDS sizeof(cmds) / sizeof(cmds[0])
+
+static const struct cmd* get_cmd(char *name) {
+    const struct cmd *cmd = NULL;
+    for (int j = 0; j < NUM_CMDS; j++) {
+        if (strcmp (name, cmds[j].name) == 0) {
+            cmd = &(cmds[j]);
+            break;
+        }
+    }
+
+    return cmd;
+}
+
+static int
+split_str(char *line, char **argv[]) {
+    int argc = 0;
+    char *line_start;
+
+    line_start = line;
+    while (*line != '\0') {
+        if (*line == ' ') {
+            argc++;
+        }
+        line++;
+    }
+
+    argc++;
+    line = line_start;
+    *argv = malloc(sizeof(char*) * argc);
+    if (*argv == NULL) {
+        goto out;
+    }
+
+    int cur_arg = 0;
+    while (cur_arg < argc && *line != '\0') {
+        (*argv)[cur_arg] = line;
+
+        while (*line != ' ' && *line != '\n' && *line != '\0') {
+            line++;
+        }
+
+        *line = '\0';
+        line++;
+        cur_arg++;
+    }
+out:
+    return argc;
+}
 
 void data_receiver(void *context, cluster_gossip_t *gossip, const uint8_t *data, size_t data_size) {
     // This function is invoked every time when a new data arrives.
@@ -194,6 +275,8 @@ int main(int argc, char **argv) {
     
     pthread_create(&gcsnode.pthgossip, NULL, thread_start, NULL);
 
+    gctx->argc = 0;
+    gctx->argv = NULL;
     kx_loop();
 
     pthread_rwlock_destroy(&gcsnode.rwlock);
