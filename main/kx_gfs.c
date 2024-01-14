@@ -132,15 +132,22 @@ do_completion(char const *prefix, linenoiseCompletions* lc) {
 }
 
 static void kx_loop() {
-    char       *line;
-    const char *file = "./history";
+    char            *line;
+    const char      *file = "./history";
     kx_prompt        = KX_PROMPT;
+    const struct cmd *cmd;
 
     linenoiseHistoryLoad(file);
     linenoiseSetCompletionCallback(do_completion);
 
     while ((line = linenoise(kx_prompt)) != NULL) {
         if (line[0] != '\0' && line[0] != '/') {
+            gctx->argc = split_str(line, &gctx->argv);
+            if (gctx->argc == 0) {
+                continue;
+            }
+            cmd = get_cmd(gctx->argv[0]);
+            cmd->execute(gctx);
         } else {
 
         }
