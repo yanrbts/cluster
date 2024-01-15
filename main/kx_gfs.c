@@ -13,63 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stddef.h>
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <poll.h>
-#include <time.h>
-#include <pthread.h>
-#include "kx_config.h"
-#include "kx_gossip.h"
+#include "kx_gfs.h"
 #include "kx_log.h"
 #include "kx_linenoise.h"
+#include "kx_ls.h"
 
 #define KX_PROMPT      "gfs>"
 char                   *kx_prompt = NULL;
-
-struct kx_option {
-    struct kx_option *next;
-    char *key;
-    char *opt_string;
-    char *value;
-};
-
-struct options {
-    struct kx_option *kx_options;
-};
-
-struct context {
-    struct options *options;
-    int argc;
-    char **argv;
-};
 
 struct cmd {
     char *name;
     int (*execute)(struct context *ctx);
 };
 
-typedef struct clusternode {
-    char nodename[32];          /* node name */
-    cluster_addr_t self;        /* node self addr */
-    cluster_addr_t seed_node;   /* seed node addr */
-    cluster_gossip_t *gossip;   /* gossip handle */
-    pthread_t pthgossip;
-    pthread_rwlock_t rwlock;
-} clusternode;
-
 clusternode gcsnode;
 struct context *gctx;
 const char DATA_MESSAGE[] = "Hello World";
 
-int do_ls(struct context *ctx) {
-    return 0;
-}
-
 static struct cmd const cmds[] =
 {
-    {.name = "gfls", .execute = do_ls}
+    {.name = "ls", .execute = do_ls}
 };
 #define NUM_CMDS sizeof(cmds) / sizeof(cmds[0])
 
@@ -282,6 +245,10 @@ int main(int argc, char **argv) {
     
     pthread_create(&gcsnode.pthgossip, NULL, thread_start, NULL);
 
+    gctx = malloc(sizeof (*gctx));
+    if (gctx == NULL) {
+        log_error("failed to initialize context");
+    }
     gctx->argc = 0;
     gctx->argv = NULL;
     kx_loop();

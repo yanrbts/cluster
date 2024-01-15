@@ -149,12 +149,12 @@ cluster_gossip_state_t cluster_gossip_state(cluster_gossip_t *self);
 cluster_socket_fd cluster_gossip_socket_fd(cluster_gossip_t *self);
 
 /**
- * Remove timed-out member.
+ * find member list.
  *
  * @param self  a gossip descriptor instance.
- * @warning note that this function is intended for use by the seed node only
+ * @warning member list
  */
-void cluster_gossip_remove_timeout_member(cluster_gossip_t *self);
+cluster_member_set_t *cluster_gossip_member_list(cluster_gossip_t *self);
 
 #ifdef  __cplusplus
 }

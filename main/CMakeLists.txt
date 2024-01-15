@@ -17,7 +17,7 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -DLOG_USE_COLOR -std=gnu99 -O2")
 include_directories(../src)
 include_directories(./)
-add_executable(gfs kx_gfs.c kx_linenoise.c $<TARGET_OBJECTS:cluster_obj>)
+add_executable(gfs kx_ls.c kx_gfs.c kx_linenoise.c $<TARGET_OBJECTS:cluster_obj>)
 add_executable(kxcluster kx_cluster.c  $<TARGET_OBJECTS:cluster_obj>)
 
 find_package(Threads REQUIRED)
