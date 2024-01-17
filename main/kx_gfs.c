@@ -111,6 +111,8 @@ static void kx_loop() {
             }
             cmd = get_cmd(gctx->argv[0]);
             cmd->execute(gctx);
+            free(gctx->argv);
+            gctx->argv = NULL;
         } else {
 
         }
