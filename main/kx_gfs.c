@@ -48,38 +48,51 @@ static const struct cmd* get_cmd(char *name) {
     return cmd;
 }
 
-static int
-split_str(char *line, char **argv[]) {
+static int split_str(char *line, char ***argv) {
     int argc = 0;
-    char *line_start;
+    char *line_start = line;
 
-    line_start = line;
     while (*line != '\0') {
-        if (*line == ' ') {
+        while (*line == ' ') {
+            line++;
+        }
+
+        if (*line != '\0') {
             argc++;
         }
-        line++;
+
+        while (*line != ' ' && *line != '\n' && *line != '\0') {
+            line++;
+        }
     }
 
-    argc++;
-    line = line_start;
-    *argv = malloc(sizeof(char*) * argc);
+    *argv = (char **)malloc(sizeof(char *) * argc);
     if (*argv == NULL) {
         goto out;
     }
 
     int cur_arg = 0;
+    line = line_start;
+
     while (cur_arg < argc && *line != '\0') {
-        (*argv)[cur_arg] = line;
+        while (*line == ' ') {
+            line++;
+        }
+
+        if (*line != '\0') {
+            (*argv)[cur_arg++] = line;
+        }
 
         while (*line != ' ' && *line != '\n' && *line != '\0') {
             line++;
         }
 
-        *line = '\0';
-        line++;
-        cur_arg++;
+        if (*line != '\0') {
+            *line = '\0';
+            line++;
+        }
     }
+
 out:
     return argc;
 }
