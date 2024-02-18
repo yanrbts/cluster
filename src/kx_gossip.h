@@ -64,10 +64,13 @@ typedef struct cluster_addr {
  *                      a new data message arrives.
  * @param data_receiver_context an arbitrary context that is always passed to
  *                              a data_receiver callback.
+ * @param uname cluster node name
  * @return a new gossip descriptor instance.
  */
 cluster_gossip_t *cluster_gossip_create(const cluster_addr_t *self_addr,
-                                          data_receiver_t data_receiver, void *data_receiver_context);
+                                          data_receiver_t data_receiver, 
+                                          void *data_receiver_context,
+                                          const char *uname);
 
 /**
  * Destroys a gossip descriptor instance.

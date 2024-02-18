@@ -16,6 +16,8 @@
  */
 #include "kx_config.h"
 
+#define UNUSED(A) (void)(A)
+
 /* The member timeout response time is defined as 15 seconds. 
  * If it exceeds this duration, the member is considered 
  * disconnected and can be removed. */
@@ -25,13 +27,18 @@ static const uint32_t MEMBERS_INITIAL_CAPACITY = 32;
 static const uint8_t MEMBERS_EXTENSION_FACTOR = 2;
 static const double MEMBERS_LOAD_FACTOR = 0.75;
 
-int cluster_member_init(cluster_member_t *result, const cluster_sockaddr_storage *address, cluster_socklen_t address_len) {
+int cluster_member_init(cluster_member_t *result, const cluster_sockaddr_storage *address, 
+                        cluster_socklen_t address_len, const char *uname, uint16_t uname_len) {
+    UNUSED(uname_len);
+
     result->uid = cluster_time() / 1000;
     result->version = PROTOCOL_VERSION;
     result->address_len = address_len;
     result->address = (cluster_sockaddr_storage *) malloc(address_len);
     if (result->address == NULL) return CLUSTER_ERR_ALLOCATION_FAILED;
     memcpy(result->address, address, address_len);
+    strncpy(result->username, uname, sizeof(result->username)-1);
+    result->username[sizeof(result->username)-1] = '\0';
     return CLUSTER_ERR_NONE;
 }
 
@@ -42,6 +49,9 @@ static int cluster_member_copy(cluster_member_t *dst, cluster_member_t *src) {
     dst->address = (cluster_sockaddr_storage *) malloc(src->address_len);
     if (dst->address == NULL) return CLUSTER_ERR_ALLOCATION_FAILED;
     memcpy(dst->address, src->address, src->address_len);
+    strncpy(dst->username, src->username, sizeof(dst->username)-1);
+    dst->username[sizeof(src->username)-1] = '\0';
+
     return CLUSTER_ERR_NONE;
 }
 
@@ -59,6 +69,8 @@ void cluster_member_destroy(cluster_member_t *result) {
 int cluster_member_decode(const uint8_t *buffer, size_t buffer_size, cluster_member_t *member) {
     if (buffer_size < 2 * sizeof(uint32_t) + sizeof(uint16_t)) return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
     const uint8_t *cursor = buffer;
+    memcpy(member->username, cursor, sizeof(member->username));
+    cursor += sizeof(member->username);
     member->version = uint16_decode(cursor);
     cursor += sizeof(uint16_t);
     member->uid = uint32_decode(cursor);
@@ -71,10 +83,12 @@ int cluster_member_decode(const uint8_t *buffer, size_t buffer_size, cluster_mem
 }
 
 int cluster_member_encode(const cluster_member_t *member, uint8_t *buffer, size_t buffer_size) {
-    if (buffer_size < 2 * sizeof(uint32_t) + sizeof(uint16_t) + member->address_len) {
+    if (buffer_size < sizeof(member->username) + 2 * sizeof(uint32_t) + sizeof(uint16_t) + member->address_len) {
         return CLUSTER_ERR_BUFFER_NOT_ENOUGH;
     }
     uint8_t *cursor = buffer;
+    memcpy(cursor, member->username, sizeof(member->username));
+    cursor += sizeof(member->username);
     uint16_encode(member->version, cursor);
     cursor += sizeof(uint16_t);
     uint32_encode(member->uid, cursor);

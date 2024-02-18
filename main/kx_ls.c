@@ -123,7 +123,7 @@ static int ls() {
     pthread_rwlock_rdlock(&gcsnode.rwlock);
     mset = cluster_gossip_member_list(gcsnode.gossip);
     for (int i = 0; i < mset->size; i++) {
-        printf("[*] %u\n", mset->set[i]->uid);
+        printf("[*] %-16s %12u\n", mset->set[i]->username, mset->set[i]->uid);
     }
     pthread_rwlock_unlock(&gcsnode.rwlock);
 

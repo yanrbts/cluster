@@ -24,6 +24,7 @@ extern "C" {
 #endif
 
 struct cluster_member {
+    char username[32];
     uint16_t version;
     uint32_t uid;
     cluster_socklen_t address_len;
@@ -38,7 +39,9 @@ struct cluster_member_set {
 
 int cluster_member_init(cluster_member_t *result, 
                         const cluster_sockaddr_storage *address, 
-                        cluster_socklen_t address_len);
+                        cluster_socklen_t address_len,
+                        const char *uname,
+                        uint16_t uname_len);
 int cluster_member_equals(cluster_member_t *first, cluster_member_t *second);
 void cluster_member_destroy(cluster_member_t *result);
 int cluster_member_decode(const uint8_t *buffer, size_t buffer_size, cluster_member_t *member);

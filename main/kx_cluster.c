@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
     };
 
     // Create a new Pittacus descriptor instance.
-    cluster_gossip_t *gossip = cluster_gossip_create(&self_addr, &data_receiver, NULL);
+    cluster_gossip_t *gossip = cluster_gossip_create(&self_addr, &data_receiver, NULL, "seed");
     if (gossip == NULL) {
         log_error("Gossip initialization failed: %s\n", strerror(errno));
         return -1;

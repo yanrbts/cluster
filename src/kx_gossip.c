@@ -659,7 +659,9 @@ static int gossip_handle_new_message(cluster_gossip_t *self, const message_envel
 
 static int cluster_gossip_init(cluster_gossip_t *self,
                                 const cluster_addr_t *self_addr,
-                                data_receiver_t data_receiver, void *data_receiver_context) {
+                                data_receiver_t data_receiver, 
+                                void *data_receiver_context,
+                                const char *uname) {
     self->socket = cluster_socket_datagram((const cluster_sockaddr_storage *) self_addr->addr, self_addr->addr_len);
     if (self->socket < 0) {
         return CLUSTER_ERR_INIT_FAILED;
@@ -681,7 +683,7 @@ static int cluster_gossip_init(cluster_gossip_t *self,
     vector_clock_init(&self->data_version);
 
     self->state = STATE_INITIALIZED;
-    cluster_member_init(&self->self_address, &updated_self_addr, updated_self_addr_size);
+    cluster_member_init(&self->self_address, &updated_self_addr, updated_self_addr_size, uname, strlen(uname));
     cluster_member_set_init(&self->members);
 
     self->data_log.current_idx = 0;
@@ -695,11 +697,13 @@ static int cluster_gossip_init(cluster_gossip_t *self,
 }
 
 cluster_gossip_t *cluster_gossip_create(const cluster_addr_t *self_addr,
-                                          data_receiver_t data_receiver, void *data_receiver_context) {
+                                          data_receiver_t data_receiver, 
+                                          void *data_receiver_context,
+                                          const char *uname) {
     cluster_gossip_t *result = (cluster_gossip_t *) malloc(sizeof(cluster_gossip_t));
     if (result == NULL) return NULL;
 
-    int int_res = cluster_gossip_init(result, self_addr, data_receiver, data_receiver_context);
+    int int_res = cluster_gossip_init(result, self_addr, data_receiver, data_receiver_context, uname);
     if (int_res < 0) {
         free(result);
         return NULL;

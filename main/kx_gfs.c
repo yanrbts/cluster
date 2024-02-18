@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2023 yanruibinghxu
+ * Copyright 2023-2024 yanruibinghxu
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,9 @@ static void kx_loop() {
                 continue;
             }
             cmd = get_cmd(gctx->argv[0]);
-            cmd->execute(gctx);
+            if (cmd) {
+                cmd->execute(gctx);
+            }
             free(gctx->argv);
             gctx->argv = NULL;
         } else {
@@ -165,7 +167,7 @@ static void *thread_start(void *arg){
     gcsnode.seed_node.addr_len = sizeof(struct sockaddr_in);
 
     // Create a new Pittacus descriptor instance.
-    gcsnode.gossip = cluster_gossip_create(&gcsnode.self, &data_receiver, NULL);
+    gcsnode.gossip = cluster_gossip_create(&gcsnode.self, &data_receiver, NULL, gcsnode.nodename);
     if (gcsnode.gossip == NULL) {
         log_error("Gossip initialization failed: %s\n", strerror(errno));
         return NULL;
